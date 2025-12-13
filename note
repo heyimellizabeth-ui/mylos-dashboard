@@ -2,3 +2,8 @@ scanStatus.textContent = "Uploaden naar server...";
 progressFill.style.width = "25%";
 
 const imageUrl = await uploadInvoiceImage(file);
+
+// ONLY now load OCR
+scanStatus.textContent = "OCR voorbereiden...";
+progressFill.style.width = "35%";
+await initOCR();
