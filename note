@@ -1,0 +1,59 @@
+<?php
+// Allow only POST requests
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(["error" => "Method not allowed"]);
+    exit;
+}
+
+// Folder where images will be stored
+$uploadDir = __DIR__ . "/uploads/";
+
+// Check if uploads folder exists
+if (!is_dir($uploadDir)) {
+    http_response_code(500);
+    echo json_encode(["error" => "Uploads folder not found"]);
+    exit;
+}
+
+// Check if a file was uploaded
+if (!isset($_FILES['image'])) {
+    http_response_code(400);
+    echo json_encode(["error" => "No image file received"]);
+    exit;
+}
+
+$file = $_FILES['image'];
+
+// Check for upload errors
+if ($file['error'] !== UPLOAD_ERR_OK) {
+    http_response_code(400);
+    echo json_encode(["error" => "Upload failed"]);
+    exit;
+}
+
+// Validate file type (images only)
+$allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+if (!in_array($file['type'], $allowedTypes)) {
+    http_response_code(400);
+    echo json_encode(["error" => "Invalid file type"]);
+    exit;
+}
+
+// Generate safe filename
+$extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+$filename = date("Y-m-d_H-i-s") . "_" . uniqid() . "." . $extension;
+$targetPath = $uploadDir . $filename;
+
+// Move uploaded file
+if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+    http_response_code(500);
+    echo json_encode(["error" => "Failed to save file"]);
+    exit;
+}
+
+// Success response
+echo json_encode([
+    "success" => true,
+    "imageUrl" => "/mylos/uploads/" . $filename
+]);
