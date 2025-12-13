@@ -1,11 +1,21 @@
-Options -Indexes
+// ===========================================================
+// SERVER UPLOAD (FILES STORED ONLY ON SERVER)
+// ===========================================================
 
-# Block direct access to PHP if someone uploads something nasty
-<FilesMatch "\.(php|phtml|phar)$">
-  Deny from all
-</FilesMatch>
+async function uploadInvoiceImage(file) {
+  const form = new FormData();
+  form.append("image", file);
 
-# Allow only common invoice image types (basic safety)
-<FilesMatch "\.(jpg|jpeg|png|webp|pdf)$">
-  Require all granted
-</FilesMatch>
+  const res = await fetch("./upload.php", {
+    method: "POST",
+    body: form
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || "Upload failed");
+  }
+
+  return data.imageUrl; // server path only
+}
