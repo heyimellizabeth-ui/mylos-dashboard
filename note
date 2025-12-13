@@ -1,21 +1,4 @@
-// ===========================================================
-// SERVER UPLOAD (FILES STORED ONLY ON SERVER)
-// ===========================================================
+scanStatus.textContent = "Uploaden naar server...";
+progressFill.style.width = "25%";
 
-async function uploadInvoiceImage(file) {
-  const form = new FormData();
-  form.append("image", file);
-
-  const res = await fetch("./upload.php", {
-    method: "POST",
-    body: form
-  });
-
-  const data = await res.json();
-
-  if (!res.ok || !data.success) {
-    throw new Error(data.error || "Upload failed");
-  }
-
-  return data.imageUrl; // server path only
-}
+const imageUrl = await uploadInvoiceImage(file);
