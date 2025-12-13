@@ -1,9 +1,6 @@
-scanStatus.textContent = "Uploaden naar server...";
-progressFill.style.width = "25%";
-
-const imageUrl = await uploadInvoiceImage(file);
-
-// ONLY now load OCR
-scanStatus.textContent = "OCR voorbereiden...";
-progressFill.style.width = "35%";
-await initOCR();
+<textarea
+  class="form-input"
+  rows="5"
+  id="scannedProducts"
+  placeholder="Product 1 - €10.50&#10;Product 2 - €25.00">
+</textarea>
