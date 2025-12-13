@@ -1,6 +1,15 @@
-<textarea
-  class="form-input"
-  rows="5"
-  id="scannedProducts"
-  placeholder="Product 1 - €10.50&#10;Product 2 - €25.00">
-</textarea>
+The Mylos Management Pro front‑end is largely functional when accessed via the correct URL (you need to open https://softsyntax.dev/mylos/index.html because softsyntax.dev on its own shows the blog and softsyntax.dev/mylos returns a 404).  Once at the correct page:
+	•	Navigation works. The Dashboard, Scanner, Purchases (Aankopen), Analytics and Suppliers (Leveranciers) pages all load correctly, and the dark/light‑mode toggle and data‑sync buttons behave as expected.
+	•	Purchases page lets you add new entries via the Nieuwe Aankoop modal and shows them in the table.  The “Export CSV” button displays a “CSV geëxporteerd” success message, indicating the export function is hooked up.
+	•	Analytics and Suppliers pages display charts, summaries and supplier cards, with no obvious layout or functionality issues.
+	•	Smart Alerts panel opens with a toggle section; there are no current alerts, so it reports “Geen waarschuwing op dit moment.”
+
+Potential issues noted:
+	•	The invoice scanner page opens, but the underlying OCR upload functionality might still be unreliable (e.g. previously getting “Stuck at OCR uitvoeren”).  I couldn’t test fully without a sample invoice, but this remains the only area showing problems.
+	•	In the scanned data area, the placeholder for “Products” uses an HTML entity (&#10;) instead of a newline, so the example shows literal characters rather than line breaks.  This would need adjusting in the HTML/CSS.
+	•	The site isn’t served from the root domain by default; you have to explicitly include the index.html path.  Updating the server configuration (e.g. .htaccess or redirect) would make softsyntax.dev/mylos resolve automatically.
+
+If there’s a specific task you’d like to test (such as uploading an invoice to verify the scanner works end‑to‑end), let me know and I can try that next. 
+
+
+Also fix these errors please 
