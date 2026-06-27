@@ -669,6 +669,17 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
           </table>
         </div>
       </div>
+      <div class="sched-pager" id="users-body-pager">
+        <button class="pager-prev pager-btn" onclick="schedGoTo('users-body',-1)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+          Vorige
+        </button>
+        <span class="pager-info"></span>
+        <button class="pager-next pager-btn" onclick="schedGoTo('users-body',1)">
+          Volgende
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
     </div>
 
   </main>
@@ -726,7 +737,7 @@ function cellBadge(val, admin=false){
 }
 
 var ROWS_PER_PAGE = 10;
-var schedPages = { 'sched-body': 0, 'admin-sched-body': 0 };
+var schedPages = { 'sched-body': 0, 'admin-sched-body': 0, 'users-body': 0 };
 
 function buildScheduleTable(tbodyId, admin){
   var tbody = document.getElementById(tbodyId);
@@ -777,12 +788,13 @@ window.schedGoTo = function(tbodyId, delta){
 window.addEventListener('resize', function(){
   applyPagination('sched-body');
   applyPagination('admin-sched-body');
+  applyPagination('users-body');
 });
 
 function buildUsersTable(){
   var tbody = document.getElementById('users-body');
-  tbody.innerHTML = staff.map(function(e){
-    return '<tr>'
+  tbody.innerHTML = staff.map(function(e, i){
+    return '<tr class="sched-row" data-row="'+i+'">'
       +'<td><div class="emp-row"><div class="avatar" style="width:28px;height:28px;font-size:11px">'+e.name[0]+'</div><span style="font-weight:500">'+e.name+'</span></div></td>'
       +'<td><select class="role-select">'
       +'<option '+(e.role==='service'?'selected':'')+'>Bediening</option>'
@@ -793,6 +805,8 @@ function buildUsersTable(){
       +'<td style="text-align:right"><button class="btn-sm-outline" style="font-size:11px;height:28px;padding:0 10px">Deactiveren</button></td>'
       +'</tr>';
   }).join('');
+  schedPages['users-body'] = 0;
+  applyPagination('users-body');
 }
 
 buildScheduleTable('sched-body', false);
