@@ -170,11 +170,17 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
 .anim-row{opacity:0;animation:fadeUp .35s ease forwards}
 
 /* ── Mobile header (hidden on desktop) ── */
-.mobile-header{display:none}
+.mobile-header{display:none;will-change:transform}
 
 /* ── Sidebar backdrop (mobile drawer overlay) ── */
 .sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:49}
 .sb-backdrop.visible{display:block}
+
+/* ── GPU layer for sidebar (prevents scroll repaint on mobile) ── */
+@media(max-width:640px){
+  .sidebar{will-change:left}
+  .table-wrap{-webkit-overflow-scrolling:touch}
+}
 
 /* ── Demo bar safe-area ── */
 .demo-bar{bottom:max(16px,env(safe-area-inset-bottom))}
@@ -200,7 +206,8 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
 
   /* Shell: no left sidebar in flow */
   .shell{display:block}
-  .main{padding-top:56px;padding-bottom:env(safe-area-inset-bottom)}
+  /* Let body scroll on mobile — nested overflow-y:auto causes scroll jank */
+  .main{overflow-y:visible;padding-top:56px;padding-bottom:env(safe-area-inset-bottom)}
 
   /* Pages */
   .page{padding:16px}
