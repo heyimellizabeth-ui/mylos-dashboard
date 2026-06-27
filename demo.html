@@ -172,6 +172,12 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
 /* ── Mobile header (hidden on desktop) ── */
 .mobile-header{display:none;will-change:transform}
 
+/* ── Schedule pager (hidden on desktop, shown on mobile) ── */
+.sched-pager{display:none;align-items:center;justify-content:space-between;padding:10px 4px 2px}
+.pager-btn{display:flex;align-items:center;gap:5px;height:40px;padding:0 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);font-size:13px;font-weight:500;color:var(--fg)}
+.pager-btn:disabled{opacity:.35;pointer-events:none}
+.pager-info{font-size:12px;color:var(--muted-fg);font-weight:500}
+
 /* ── Sidebar backdrop (mobile drawer overlay) ── */
 .sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:49}
 .sb-backdrop.visible{display:block}
@@ -468,6 +474,17 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
           <tbody id="sched-body"></tbody>
         </table>
       </div>
+      <div class="sched-pager" id="sched-body-pager">
+        <button class="pager-prev pager-btn" onclick="schedGoTo('sched-body',-1)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+          Vorige
+        </button>
+        <span class="pager-info"></span>
+        <button class="pager-next pager-btn" onclick="schedGoTo('sched-body',1)">
+          Volgende
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
     </div>
 
     <!-- TIME OFF -->
@@ -562,6 +579,17 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
           </thead>
           <tbody id="admin-sched-body"></tbody>
         </table>
+      </div>
+      <div class="sched-pager" id="admin-sched-body-pager">
+        <button class="pager-prev pager-btn" onclick="schedGoTo('admin-sched-body',-1)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+          Vorige
+        </button>
+        <span class="pager-info"></span>
+        <button class="pager-next pager-btn" onclick="schedGoTo('admin-sched-body',1)">
+          Volgende
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
       </div>
       <p style="font-size:11px;color:var(--muted-fg);margin-top:10px">💡 Klik op een cel om de status of dienstvak aan te passen</p>
     </div>
@@ -697,40 +725,74 @@ function cellBadge(val, admin=false){
   return `<span class="badge badge-blue">${val}</span>`;
 }
 
-function buildScheduleTable(tbodyId, admin=false){
-  const tbody = document.getElementById(tbodyId);
-  tbody.innerHTML = staff.map((e,ri)=>`
-    <tr class="anim-row" style="animation-delay:${ri*28}ms">
-      <td class="name-col">
-        <div class="emp-row">
-          <div class="avatar" style="width:30px;height:30px;font-size:11px">${e.name[0]}</div>
-          <div>
-            <div class="emp-name">${e.name}</div>
-            <span class="badge emp-role ${e.role==='kitchen'?'badge-violet':'badge-cyan'}">${e.role==='kitchen'?'Keuken':'Bediening'}</span>
-          </div>
-        </div>
-      </td>
-      ${e.schedule.map((v,d)=>`<td style="${admin?'cursor:pointer':''}" ${admin?`title="Klik om te bewerken"`:''}>${cellBadge(v,admin)}</td>`).join('')}
-    </tr>`).join('');
+var ROWS_PER_PAGE = 10;
+var schedPages = { 'sched-body': 0, 'admin-sched-body': 0 };
+
+function buildScheduleTable(tbodyId, admin){
+  var tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = staff.map(function(e,ri){
+    return '<tr class="anim-row sched-row" data-row="'+ri+'" style="animation-delay:'+(ri*20)+'ms">'
+      +'<td class="name-col"><div class="emp-row">'
+      +'<div class="avatar" style="width:30px;height:30px;font-size:11px">'+e.name[0]+'</div>'
+      +'<div><div class="emp-name">'+e.name+'</div>'
+      +'<span class="badge emp-role '+(e.role==='kitchen'?'badge-violet':'badge-cyan')+'">'+(e.role==='kitchen'?'Keuken':'Bediening')+'</span>'
+      +'</div></div></td>'
+      +e.schedule.map(function(v){
+        return '<td'+(admin?' style="cursor:pointer" title="Klik om te bewerken"':'')+'>'
+          +cellBadge(v,admin)+'</td>';
+      }).join('')
+      +'</tr>';
+  }).join('');
+  schedPages[tbodyId] = 0;
+  applyPagination(tbodyId);
 }
 
+function applyPagination(tbodyId){
+  var mobile = window.innerWidth <= 640;
+  var page = schedPages[tbodyId];
+  var rows = document.querySelectorAll('#'+tbodyId+' .sched-row');
+  rows.forEach(function(r){
+    var idx = parseInt(r.getAttribute('data-row'));
+    r.style.display = (!mobile || (idx >= page*ROWS_PER_PAGE && idx < (page+1)*ROWS_PER_PAGE)) ? '' : 'none';
+  });
+  var total = Math.ceil(staff.length / ROWS_PER_PAGE);
+  var ctrlId = tbodyId+'-pager';
+  var ctrl = document.getElementById(ctrlId);
+  if(!ctrl) return;
+  if(!mobile){ ctrl.style.display='none'; return; }
+  ctrl.style.display='flex';
+  ctrl.querySelector('.pager-info').textContent = (page+1)+' / '+total;
+  ctrl.querySelector('.pager-prev').disabled = page===0;
+  ctrl.querySelector('.pager-next').disabled = page>=total-1;
+}
+
+window.schedGoTo = function(tbodyId, delta){
+  var total = Math.ceil(staff.length / ROWS_PER_PAGE);
+  schedPages[tbodyId] = Math.max(0, Math.min(total-1, schedPages[tbodyId]+delta));
+  applyPagination(tbodyId);
+  var wrap = document.getElementById(tbodyId).closest('.table-wrap');
+  if(wrap) wrap.scrollTop=0;
+};
+
+window.addEventListener('resize', function(){
+  applyPagination('sched-body');
+  applyPagination('admin-sched-body');
+});
+
 function buildUsersTable(){
-  const tbody = document.getElementById('users-body');
-  tbody.innerHTML = staff.map((e,i)=>`
-    <tr>
-      <td><div class="emp-row"><div class="avatar" style="width:28px;height:28px;font-size:11px">${e.name[0]}</div><span style="font-weight:500">${e.name}</span></div></td>
-      <td>
-        <select class="role-select">
-          <option ${e.role==='service'?'selected':''}>Bediening</option>
-          <option ${e.role==='kitchen'?'selected':''}>Keuken</option>
-          <option>Beheerder</option>
-        </select>
-      </td>
-      <td><span class="badge badge-green">Actief</span></td>
-      <td style="text-align:right">
-        <button class="btn-sm-outline" style="font-size:11px;height:28px;padding:0 10px">Deactiveren</button>
-      </td>
-    </tr>`).join('');
+  var tbody = document.getElementById('users-body');
+  tbody.innerHTML = staff.map(function(e){
+    return '<tr>'
+      +'<td><div class="emp-row"><div class="avatar" style="width:28px;height:28px;font-size:11px">'+e.name[0]+'</div><span style="font-weight:500">'+e.name+'</span></div></td>'
+      +'<td><select class="role-select">'
+      +'<option '+(e.role==='service'?'selected':'')+'>Bediening</option>'
+      +'<option '+(e.role==='kitchen'?'selected':'')+'>Keuken</option>'
+      +'<option>Beheerder</option>'
+      +'</select></td>'
+      +'<td><span class="badge badge-green">Actief</span></td>'
+      +'<td style="text-align:right"><button class="btn-sm-outline" style="font-size:11px;height:28px;padding:0 10px">Deactiveren</button></td>'
+      +'</tr>';
+  }).join('');
 }
 
 buildScheduleTable('sched-body', false);
