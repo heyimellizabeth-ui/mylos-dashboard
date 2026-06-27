@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mylos Rooster — Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -168,9 +168,79 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
 /* ── Animations ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .anim-row{opacity:0;animation:fadeUp .35s ease forwards}
+
+/* ── Mobile header (hidden on desktop) ── */
+.mobile-header{display:none}
+
+/* ── Sidebar backdrop (mobile drawer overlay) ── */
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:49}
+.sb-backdrop.visible{display:block}
+
+/* ── Demo bar safe-area ── */
+.demo-bar{bottom:max(16px,env(safe-area-inset-bottom))}
+
+/* ── Mobile breakpoint ── */
+@media(max-width:640px){
+  /* Top header bar */
+  .mobile-header{display:flex;align-items:center;gap:12px;position:fixed;top:0;left:0;right:0;height:56px;background:var(--card);border-bottom:1px solid var(--border);padding:0 16px;z-index:50}
+  .mob-hamburger{width:40px;height:40px;border-radius:8px;background:none;display:flex;align-items:center;justify-content:center;color:var(--fg);flex-shrink:0}
+  .mob-hamburger:hover{background:var(--muted)}
+  .mob-hamburger svg{width:20px;height:20px}
+  .mob-logo{display:flex;align-items:center;gap:8px;flex:1}
+  .mob-logo-icon{width:28px;height:28px;border-radius:7px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+  .mob-logo-text{font-size:15px;font-weight:600}
+  .mob-avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+
+  /* Sidebar becomes a fixed drawer */
+  .sidebar{position:fixed;top:0;left:-240px;height:100%;z-index:51;width:240px;transition:left .25s ease;box-shadow:none}
+  .sidebar.open{left:0;box-shadow:4px 0 24px rgba(0,0,0,.18)}
+  .sidebar.collapsed{width:240px;left:-240px}
+  .sidebar.collapsed .sb-brand-text,.sidebar.collapsed .nav-btn span,.sidebar.collapsed .sb-section,.sidebar.collapsed .user-info{opacity:1;max-width:unset;width:auto}
+  .sidebar.collapsed .nav-btn{justify-content:flex-start;padding:8px 10px}
+
+  /* Shell: no left sidebar in flow */
+  .shell{display:block}
+  .main{padding-top:56px;padding-bottom:env(safe-area-inset-bottom)}
+
+  /* Pages */
+  .page{padding:16px}
+  .page-header h1{font-size:18px}
+
+  /* Login */
+  #screen-login{padding:16px;align-items:flex-start;padding-top:80px}
+  .login-card{width:100%;border-radius:12px;padding:24px 20px}
+
+  /* Buttons — 44px touch targets */
+  .btn-outline,.btn-icon,.btn-sm,.btn-sm-outline{min-height:44px}
+  .btn-icon{width:44px;height:44px}
+  .btn-outline{height:44px;padding:0 16px}
+
+  /* Request cards: stack vertically */
+  .request-row{flex-direction:column;gap:10px}
+  .action-row{flex-wrap:wrap}
+
+  /* Demo bar: don't overlap content */
+  .demo-bar{bottom:max(12px,env(safe-area-inset-bottom));padding:5px 6px}
+  .demo-tab{padding:5px 10px;font-size:11px}
+}
 </style>
 </head>
 <body>
+
+<!-- Mobile top header (visible on phones only) -->
+<header class="mobile-header" id="mobile-header" style="display:none">
+  <button class="mob-hamburger" onclick="toggleSidebar()" aria-label="Menu openen">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="mob-logo">
+    <div class="mob-logo-icon">M</div>
+    <span class="mob-logo-text">Mylos Rooster</span>
+  </div>
+  <div class="mob-avatar">L</div>
+</header>
+
+<!-- Drawer backdrop -->
+<div class="sb-backdrop" id="sb-backdrop" onclick="closeSidebar()"></div>
 
 <!-- LOGIN SCREEN -->
 <div id="screen-login" style="display:none">
@@ -622,9 +692,21 @@ buildScheduleTable('sched-body', false);
 buildScheduleTable('admin-sched-body', true);
 buildUsersTable();
 
-/* ── Sidebar collapse ── */
+/* ── Sidebar collapse / drawer ── */
+var isMobile = function(){ return window.innerWidth <= 640; };
+
+window.closeSidebar = function(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sb-backdrop').classList.remove('visible');
+};
+
 window.toggleSidebar = function(){
-  document.getElementById('sidebar').classList.toggle('collapsed');
+  if(isMobile()){
+    var open = document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sb-backdrop').classList.toggle('visible', open);
+  } else {
+    document.getElementById('sidebar').classList.toggle('collapsed');
+  }
 };
 
 /* ── Page switching ── */
@@ -633,6 +715,8 @@ window.showPage = function(id, btn){
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
+
+  if(isMobile()) closeSidebar();
 
   const reduced = matchMedia('(prefers-reduced-motion:reduce)').matches;
   if(!reduced){
@@ -647,8 +731,10 @@ window.showPage = function(id, btn){
 window.switchScreen = function(screen){
   document.getElementById('screen-login').style.display = screen==='login'?'flex':'none';
   document.getElementById('screen-app').style.display   = screen==='app'?'flex':'none';
+  document.getElementById('mobile-header').style.display = (screen==='app'&&isMobile())?'flex':'none';
   document.querySelectorAll('.demo-tab').forEach(t=>t.classList.remove('active'));
   event.target.classList.add('active');
+  closeSidebar();
 
   if(screen==='login'){
     const reduced = matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -656,9 +742,10 @@ window.switchScreen = function(screen){
   }
 };
 
-/* ── Boot: show app, show tab bar ── */
+/* ── Boot: show app, show tab bar, show mobile header if on phone ── */
 document.getElementById('screen-app').style.display = 'flex';
 document.getElementById('demo-bar').style.display = 'flex';
+if(isMobile()) document.getElementById('mobile-header').style.display = 'flex';
 
 /* ── Initial row animation ── */
 const reduced = matchMedia('(prefers-reduced-motion:reduce)').matches;
