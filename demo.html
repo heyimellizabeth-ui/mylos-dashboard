@@ -521,8 +521,18 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
   <button class="demo-tab active" onclick="switchScreen('app')">App</button>
 </div>
 
-<script type="module">
-import { animate, stagger } from 'https://cdn.jsdelivr.net/npm/animejs@4/+esm';
+<script>
+function staggerAnimate(selector, delayStep) {
+  const els = typeof selector === 'string'
+    ? document.querySelectorAll(selector)
+    : Array.from(selector);
+  els.forEach(function(el, i) {
+    el.style.animationDelay = (i * delayStep) + 'ms';
+    el.classList.remove('anim-row');
+    void el.offsetWidth;
+    el.classList.add('anim-row');
+  });
+}
 
 /* ── Data ── */
 const staff = [
@@ -607,7 +617,7 @@ window.showPage = function(id, btn){
   if(!reduced){
     const rows = document.querySelectorAll('#page-'+id+' .anim-row');
     if(rows.length){
-      animate(rows,{opacity:[0,1],translateY:[-8,0],duration:300,ease:'outQuart',delay:stagger(28)});
+      staggerAnimate(rows, 28);
     }
   }
 };
@@ -621,7 +631,7 @@ window.switchScreen = function(screen){
 
   if(screen==='login'){
     const reduced = matchMedia('(prefers-reduced-motion:reduce)').matches;
-    if(!reduced) animate('#login-card',{opacity:[0,1],translateY:[-16,0],duration:420,ease:'outQuart'});
+    if(!reduced) staggerAnimate(document.querySelectorAll('#login-card'), 0);
   }
 };
 
@@ -632,7 +642,7 @@ document.getElementById('demo-bar').style.display = 'flex';
 /* ── Initial row animation ── */
 const reduced = matchMedia('(prefers-reduced-motion:reduce)').matches;
 if(!reduced){
-  animate('#page-dashboard .card',{opacity:[0,1],translateY:[-10,0],duration:360,ease:'outQuart',delay:stagger(60)});
+  staggerAnimate('#page-dashboard .card', 60);
 }
 </script>
 </body>
