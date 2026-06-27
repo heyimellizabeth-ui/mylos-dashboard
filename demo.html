@@ -185,6 +185,7 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
 
 /* ── Mobile-only badge (hidden by default, shown via media query) ── */
 .mob-today-badge{display:none}
+.mob-sec-sep{margin-top:28px}
 
 /* ── GPU layer for sidebar (prevents scroll repaint on mobile) ── */
 @media(max-width:640px){
@@ -216,9 +217,9 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
 
   /* Shell: no left sidebar in flow */
   .shell{display:block}
-  /* Lock document scroll — .main is the only scroll container */
-  html,body{height:100dvh;overflow:hidden}
-  .main{height:calc(100dvh - 56px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:56px;padding-bottom:60px;overflow-x:hidden}
+  /* Lock document scroll only when app shell is active (login screen keeps normal scroll) */
+  html.app-active,body.app-active{height:100dvh;overflow:hidden}
+  .main{height:calc(100dvh - 56px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:56px;padding-bottom:max(60px,calc(env(safe-area-inset-bottom) + 50px));overflow-x:hidden}
 
   /* Pages — tighter vertical rhythm */
   .page{padding:12px}
@@ -255,12 +256,12 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
   .badge{font-size:10px;padding:1px 6px}
 
   /* Request cards */
-  .request-card{padding:12px 14px;margin-bottom:8px}
+  .request-card{padding:12px 14px;margin-bottom:6px}
   .request-title{font-size:12px}
   .request-sub{font-size:11px}
   .request-row{flex-direction:column;gap:8px}
   .action-row{flex-wrap:wrap;gap:6px}
-  .section-title{font-size:14px;margin-bottom:8px}
+  .section-title{font-size:13px;margin-bottom:8px}
 
   /* Admin users table */
   .data-table th,.data-table td{padding:8px 10px;font-size:12px}
@@ -274,7 +275,7 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
   .btn-outline,.btn-icon{min-height:44px}
   .btn-icon{width:44px;height:44px}
   .btn-outline{height:44px;padding:0 14px}
-  .btn-sm,.btn-sm-outline{min-height:34px;height:34px}
+  .btn-sm,.btn-sm-outline{min-height:40px;height:40px}
 
   /* Demo bar */
   .demo-bar{bottom:max(12px,env(safe-area-inset-bottom));padding:5px 6px}
@@ -284,10 +285,7 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
   .mob-hide{display:none!important}
   .mob-today-badge{display:inline-flex!important}
 
-  /* Tighter request cards so admin requests page fits without scroll */
-  .request-card{margin-bottom:6px}
-  .section-title{font-size:13px;margin-bottom:8px}
-  .mob-sec-sep{margin-top:14px!important}
+  .mob-sec-sep{margin-top:14px}
 }
 </style>
 </head>
@@ -395,7 +393,7 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
             <h1>Goedemorgen, Soula 👋</h1>
             <p>Hier is je overzicht voor vandaag.</p>
           </div>
-          <span class="badge badge-green mob-today-badge" style="flex-shrink:0">Aanwezig</span>
+          <span id="mob-today-badge" class="badge badge-green mob-today-badge" style="flex-shrink:0">Aanwezig</span>
         </div>
       </div>
 
@@ -655,7 +653,7 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
         </div>
       </div>
 
-      <div class="section-title mob-sec-sep" style="margin-top:28px">Ruildiensten wachten op goedkeuring <span class="badge badge-yellow">1</span></div>
+      <div class="section-title mob-sec-sep">Ruildiensten wachten op goedkeuring <span class="badge badge-yellow">1</span></div>
       <div class="request-card">
         <div class="request-row">
           <div>
@@ -681,7 +679,7 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
       </div>
       <div class="card">
         <div class="card-header" style="padding-bottom:0"><span class="card-title">23 medewerkers</span></div>
-        <div style="overflow-x:auto">
+        <div class="table-wrap">
           <table class="data-table" id="users-table">
             <thead><tr><th>Naam</th><th>Rol</th><th>Status</th><th style="text-align:right">Acties</th></tr></thead>
             <tbody id="users-body"></tbody>
@@ -706,8 +704,8 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
 
 <!-- Bottom tab bar -->
 <div class="demo-bar" id="demo-bar" style="display:none">
-  <button class="demo-tab" onclick="switchScreen('login')">Login</button>
-  <button class="demo-tab active" onclick="switchScreen('app')">App</button>
+  <button class="demo-tab" data-screen="login" onclick="switchScreen('login')">Login</button>
+  <button class="demo-tab active" data-screen="app" onclick="switchScreen('app')">App</button>
 </div>
 
 <script>
@@ -715,7 +713,8 @@ function staggerAnimate(selector, delayStep) {
   const els = typeof selector === 'string'
     ? document.querySelectorAll(selector)
     : Array.from(selector);
-  els.forEach(function(el, i) {
+  var visible = Array.from(els).filter(function(el){ return el.style.display !== 'none'; });
+  visible.forEach(function(el, i) {
     el.style.animationDelay = (i * delayStep) + 'ms';
     el.classList.remove('anim-row');
     void el.offsetWidth;
@@ -785,7 +784,7 @@ function applyPagination(tbodyId){
     var idx = parseInt(r.getAttribute('data-row'));
     r.style.display = (!mobile || (idx >= page*ROWS_PER_PAGE && idx < (page+1)*ROWS_PER_PAGE)) ? '' : 'none';
   });
-  var total = Math.ceil(staff.length / ROWS_PER_PAGE);
+  var total = Math.ceil(rows.length / ROWS_PER_PAGE);
   var ctrlId = tbodyId+'-pager';
   var ctrl = document.getElementById(ctrlId);
   if(!ctrl) return;
@@ -797,11 +796,12 @@ function applyPagination(tbodyId){
 }
 
 window.schedGoTo = function(tbodyId, delta){
-  var total = Math.ceil(staff.length / ROWS_PER_PAGE);
+  var total = Math.ceil(document.querySelectorAll('#'+tbodyId+' .sched-row').length / ROWS_PER_PAGE);
   schedPages[tbodyId] = Math.max(0, Math.min(total-1, schedPages[tbodyId]+delta));
   applyPagination(tbodyId);
-  var wrap = document.getElementById(tbodyId).closest('.table-wrap');
-  if(wrap) wrap.scrollTop=0;
+  var tbody = document.getElementById(tbodyId);
+  var wrap = tbody ? tbody.closest('.table-wrap') : null;
+  if(wrap) wrap.scrollTop = 0;
 };
 
 window.addEventListener('resize', function(){
@@ -831,6 +831,20 @@ function buildUsersTable(){
 buildScheduleTable('sched-body', false);
 buildScheduleTable('admin-sched-body', true);
 buildUsersTable();
+
+/* ── Sync mobile greeting badge from Soula's actual schedule entry ── */
+(function(){
+  var el = document.getElementById('mob-today-badge');
+  if(!el) return;
+  var todayCol = (new Date().getDay() + 6) % 7;
+  var tmp = document.createElement('div');
+  tmp.innerHTML = cellBadge(staff[0].schedule[todayCol]);
+  var nb = tmp.firstChild;
+  nb.id = 'mob-today-badge';
+  nb.classList.add('mob-today-badge');
+  nb.style.flexShrink = '0';
+  el.parentNode.replaceChild(nb, el);
+})();
 
 /* ── Sidebar collapse / drawer ── */
 var isMobile = function(){ return window.innerWidth <= 640; };
@@ -872,8 +886,10 @@ window.switchScreen = function(screen){
   document.getElementById('screen-login').style.display = screen==='login'?'flex':'none';
   document.getElementById('screen-app').style.display   = screen==='app'?'flex':'none';
   document.getElementById('mobile-header').style.display = (screen==='app'&&isMobile())?'flex':'none';
-  document.querySelectorAll('.demo-tab').forEach(t=>t.classList.remove('active'));
-  event.target.classList.add('active');
+  document.querySelectorAll('.demo-tab').forEach(function(t){
+    t.classList.toggle('active', t.getAttribute('data-screen') === screen);
+  });
+  document.documentElement.classList.toggle('app-active', screen === 'app');
   closeSidebar();
 
   if(screen==='login'){
@@ -886,6 +902,7 @@ window.switchScreen = function(screen){
 document.getElementById('screen-app').style.display = 'flex';
 document.getElementById('demo-bar').style.display = 'flex';
 if(isMobile()) document.getElementById('mobile-header').style.display = 'flex';
+document.documentElement.classList.add('app-active');
 
 /* ── Initial row animation ── */
 const reduced = matchMedia('(prefers-reduced-motion:reduce)').matches;
