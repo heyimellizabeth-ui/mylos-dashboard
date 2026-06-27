@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mylos Rooster — Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F8FAFC; --card: #fff; --border: #E2E8F0;
+  --muted: #F1F5F9; --muted-fg: #64748B;
+  --fg: #0F172A; --primary: #2563EB;
+  --green: #059669; --green-bg: #ECFDF5; --green-fg: #065F46;
+  --red: #DC2626; --red-bg: #FEF2F2; --red-fg: #991B1B;
+  --amber: #D97706; --amber-bg: #FFFBEB; --amber-fg: #92400E;
+  --blue-bg: #EFF6FF; --blue-fg: #1D4ED8;
+  --violet-bg: #F5F3FF; --violet-fg: #5B21B6;
+  --cyan-bg: #ECFEFF; --cyan-fg: #0E7490;
+  --r: 10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--fg);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:4px}
+
+/* ── Layout ── */
+.shell{display:flex;min-height:100vh}
+.sidebar{width:220px;min-height:100vh;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.main{flex:1;overflow-y:auto}
+.page{max-width:960px;margin:0 auto;padding:32px 24px;display:none}
+.page.active{display:block}
+
+/* ── Sidebar ── */
+.sb-brand{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid var(--border)}
+.sb-logo{width:32px;height:32px;border-radius:8px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;flex-shrink:0}
+.sb-brand-text p{font-weight:600;font-size:13px;line-height:1.2}
+.sb-brand-text small{font-size:11px;color:var(--muted-fg)}
+.sb-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.sb-section{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-fg);padding:12px 10px 4px}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--muted-fg);background:none;width:100%;text-align:left;transition:all .12s}
+.nav-btn:hover{background:var(--muted);color:var(--fg)}
+.nav-btn.active{background:var(--primary);color:#fff}
+.nav-btn svg{width:15px;height:15px;flex-shrink:0}
+.sb-user{padding:12px 10px;border-top:1px solid var(--border)}
+.user-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+
+/* ── Login screen ── */
+#screen-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)}
+.login-card{width:360px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:36px 32px;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+.login-logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:28px}
+.login-logo-icon{width:48px;height:48px;border-radius:14px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:22px}
+.login-logo h1{font-size:20px;font-weight:700;line-height:1.2}
+.login-logo small{font-size:12px;color:var(--muted-fg)}
+.form-label{display:block;font-size:13px;font-weight:500;margin-bottom:6px}
+.form-input{width:100%;height:40px;border:1px solid var(--border);border-radius:8px;padding:0 12px;font-size:14px;font-family:inherit;background:var(--card);color:var(--fg);transition:border-color .12s}
+.form-input:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.form-group{margin-bottom:16px}
+.btn-primary{width:100%;height:40px;background:var(--primary);color:#fff;border-radius:8px;font-weight:500;font-size:14px;transition:opacity .12s}
+.btn-primary:hover{opacity:.9}
+.login-note{text-align:center;font-size:12px;color:var(--muted-fg);margin-top:20px}
+
+/* ── Page header ── */
+.page-header{margin-bottom:24px}
+.page-header h1{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.page-header p{color:var(--muted-fg);font-size:13px;margin-top:4px}
+.page-header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+/* ── Cards ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-header{padding:16px 20px 0}
+.card-title{font-size:15px;font-weight:600}
+.card-body{padding:16px 20px}
+
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:500;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.badge-green{background:var(--green-bg);color:var(--green-fg)}
+.badge-red{background:var(--red-bg);color:var(--red-fg)}
+.badge-amber{background:var(--amber-bg);color:var(--amber-fg)}
+.badge-blue{background:var(--blue-bg);color:var(--blue-fg)}
+.badge-violet{background:var(--violet-bg);color:var(--violet-fg)}
+.badge-cyan{background:var(--cyan-bg);color:var(--cyan-fg)}
+.badge-muted{background:var(--muted);color:var(--muted-fg)}
+.badge-yellow{background:#FEFCE8;color:#854D0E}
+
+/* ── Dashboard ── */
+.dash-greeting{margin-bottom:20px}
+.dash-greeting h1{font-size:22px;font-weight:700}
+.dash-greeting p{color:var(--muted-fg);font-size:13px;margin-top:4px}
+.week-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+.week-day{border-radius:8px;padding:8px 4px;text-align:center;background:var(--muted)}
+.week-day.today{background:rgba(37,99,235,.08);outline:1px solid var(--primary)}
+.week-day-label{font-size:10px;color:var(--muted-fg)}
+.week-day-num{font-size:14px;font-weight:600;margin:2px 0}
+.week-dot{width:6px;height:6px;border-radius:50%;margin:0 auto;background:var(--border)}
+.week-dot.green{background:var(--green)}
+.week-dot.red{background:var(--red)}
+.week-dot.amber{background:var(--amber)}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.stat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.stat-icon svg{width:18px;height:18px}
+.stat-num{font-size:24px;font-weight:700;line-height:1}
+.stat-label{font-size:11px;color:var(--muted-fg);margin-top:3px}
+.announcement{border-left:3px solid var(--primary);padding-left:12px;margin-bottom:12px}
+.announcement:last-child{margin-bottom:0}
+.ann-title{font-weight:600;font-size:13px}
+.ann-body{color:var(--muted-fg);font-size:12px;margin-top:2px}
+.ann-meta{font-size:11px;color:var(--muted-fg);margin-top:4px}
+
+/* ── Schedule grid ── */
+.week-nav{display:flex;align-items:center;gap:8px}
+.btn-outline{height:36px;padding:0 14px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:13px;font-weight:500;transition:all .12s}
+.btn-outline:hover{background:var(--muted)}
+.btn-icon{width:36px;height:36px;border:1px solid var(--border);border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:center}
+.btn-icon:hover{background:var(--muted)}
+.schedule-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.schedule-table th{padding:10px 8px;text-align:center;background:var(--muted);font-size:11px;font-weight:600;color:var(--muted-fg);border-bottom:1px solid var(--border)}
+.schedule-table th.name-col{text-align:left;padding-left:16px;min-width:140px}
+.schedule-table td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--border)}
+.schedule-table td.name-col{padding-left:16px;text-align:left}
+.schedule-table tr:last-child td{border-bottom:none}
+.schedule-table tr:hover td{background:#FAFBFC}
+.emp-row{display:flex;align-items:center;gap:8px}
+.emp-name{font-weight:500;font-size:13px}
+.emp-role{display:block;margin-top:2px}
+.table-wrap{overflow-x:auto;border-radius:var(--r)}
+
+/* ── Requests ── */
+.request-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin-bottom:10px}
+.request-title{font-weight:600;font-size:13px}
+.request-sub{font-size:12px;color:var(--muted-fg);margin-top:3px}
+.request-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.btn-sm{height:32px;padding:0 12px;border-radius:7px;font-size:12px;font-weight:500;background:var(--primary);color:#fff;transition:opacity .12s}
+.btn-sm:hover{opacity:.9}
+.btn-sm-outline{height:32px;padding:0 12px;border-radius:7px;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--card);color:var(--fg)}
+.btn-sm-outline:hover{background:var(--muted)}
+.action-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.section-title{font-size:16px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+/* ── Admin users table ── */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:10px 16px;text-align:left;background:var(--muted);font-size:11px;font-weight:600;color:var(--muted-fg);border-bottom:1px solid var(--border)}
+.data-table td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:#FAFBFC}
+.role-select{height:30px;padding:0 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit;background:var(--card)}
+
+/* ── Screen switcher tabs ── */
+.demo-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0F172A;border-radius:999px;padding:6px 8px;display:flex;gap:4px;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.demo-tab{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:500;color:#94A3B8;background:none;transition:all .15s;white-space:nowrap}
+.demo-tab.active{background:var(--primary);color:#fff}
+
+/* ── Animations ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.anim-row{opacity:0;animation:fadeUp .35s ease forwards}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="screen-login" style="display:none">
+  <div class="login-card" id="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">M</div>
+      <div><h1>Mylos Rooster</h1><small>Restaurant Alkmaar</small></div>
+    </div>
+    <h2 style="font-size:16px;font-weight:600;margin-bottom:4px">Inloggen</h2>
+    <p style="font-size:12px;color:var(--muted-fg);margin-bottom:20px">Voer je gegevens in om verder te gaan</p>
+    <div class="form-group">
+      <label class="form-label">E-mailadres</label>
+      <input class="form-input" type="email" placeholder="naam@mylos.nl" value="lola@mylos.nl">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Wachtwoord</label>
+      <input class="form-input" type="password" placeholder="••••••••" value="••••••••">
+    </div>
+    <button class="btn-primary">Inloggen</button>
+    <p class="login-note">Geen account? Vraag een beheerder om je toe te voegen.</p>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div class="shell" id="screen-app" style="display:none">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">M</div>
+      <div class="sb-brand-text"><p>Mylos Rooster</p><small>Alkmaar</small></div>
+    </div>
+    <nav class="sb-nav">
+      <button class="nav-btn active" onclick="showPage('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-btn" onclick="showPage('schedule',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Rooster
+      </button>
+      <button class="nav-btn" onclick="showPage('timeoff',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Verlofaanvragen
+      </button>
+      <button class="nav-btn" onclick="showPage('swaps',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+        Ruildiensten
+      </button>
+      <div class="sb-section">Beheer</div>
+      <button class="nav-btn" onclick="showPage('admin-schedule',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Rooster beheer
+      </button>
+      <button class="nav-btn" onclick="showPage('admin-requests',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Aanvragen
+      </button>
+      <button class="nav-btn" onclick="showPage('admin-users',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
+        Medewerkers
+      </button>
+    </nav>
+    <div class="sb-user">
+      <div class="user-row">
+        <div class="avatar">L</div>
+        <div style="min-width:0">
+          <p style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Lola</p>
+          <p style="font-size:11px;color:var(--muted-fg)">Bediening</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Pages -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="dash-greeting">
+        <h1>Goedemorgen, Lola 👋</h1>
+        <p>Hier is je overzicht voor vandaag.</p>
+      </div>
+
+      <!-- Today -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header" style="display:flex;align-items:center;gap:8px;padding-bottom:12px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          <span class="card-title">Vandaag — vrijdag 27 juni</span>
+        </div>
+        <div class="card-body" style="padding-top:0">
+          <span class="badge badge-blue" style="font-size:13px;padding:5px 14px">7:30–16:00</span>
+          <span style="font-size:12px;color:var(--muted-fg);margin-left:10px">Kaasmrkt dienst</span>
+        </div>
+      </div>
+
+      <!-- Week strip -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><span class="card-title">Deze week</span></div>
+        <div class="card-body">
+          <div class="week-strip">
+            <div class="week-day"><div class="week-day-label">Ma</div><div class="week-day-num">22</div><div class="week-dot green"></div></div>
+            <div class="week-day"><div class="week-day-label">Di</div><div class="week-day-num">23</div><div class="week-dot green"></div></div>
+            <div class="week-day"><div class="week-day-label">Wo</div><div class="week-day-num">24</div><div class="week-dot red"></div></div>
+            <div class="week-day"><div class="week-day-label">Do</div><div class="week-day-num">25</div><div class="week-dot green"></div></div>
+            <div class="week-day today"><div class="week-day-label">Vr</div><div class="week-day-num">27</div><div class="week-dot green"></div></div>
+            <div class="week-day"><div class="week-day-label">Za</div><div class="week-day-num">28</div><div class="week-dot green"></div></div>
+            <div class="week-day"><div class="week-day-label">Zo</div><div class="week-day-num">29</div><div class="week-dot green"></div></div>
+          </div>
+          <div style="display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--muted-fg)">
+            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green)"></span>Aanwezig</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red)"></span>Vrij</span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber)"></span>Vakantie</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF9C3"><svg viewBox="0 0 24 24" fill="none" stroke="#854D0E" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+          <div class="stat-num">1</div>
+          <div class="stat-label">Verlof in behandeling</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--blue-bg)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--blue-fg)" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg></div>
+          <div class="stat-num">0</div>
+          <div class="stat-label">Ruildiensten open</div>
+        </div>
+      </div>
+
+      <!-- Announcement -->
+      <div class="card">
+        <div class="card-header" style="display:flex;align-items:center;gap:8px;padding-bottom:12px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+          <span class="card-title">Mededelingen</span>
+        </div>
+        <div class="card-body" style="padding-top:0">
+          <div class="announcement">
+            <div class="ann-title">Personeelsborrel vrijdag 4 juli 🎉</div>
+            <div class="ann-body">Na de dienst zijn we bij elkaar voor een gezellige afsluiting van het seizoen. Iedereen welkom!</div>
+            <div class="ann-meta">Manager · 26 jun 2026</div>
+          </div>
+          <div class="announcement">
+            <div style="display:flex;align-items:center;gap:6px"><span class="ann-title">Nieuwe keukenregels</span><span class="badge badge-violet">Keuken</span></div>
+            <div class="ann-body">De HACCP-checklist wordt voortaan digitaal bijgehouden. Zie de map bij de ingang.</div>
+            <div class="ann-meta">Manager · 24 jun 2026</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div class="page" id="page-schedule">
+      <div class="page-header-row" style="margin-bottom:20px">
+        <div class="page-header" style="margin:0"><h1>Rooster</h1><p>ma 22 jun – zo 28 jun 2026</p></div>
+        <div class="week-nav">
+          <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <button class="btn-outline">Vandaag</button>
+          <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="table-wrap card">
+        <table class="schedule-table" id="sched-table">
+          <thead>
+            <tr>
+              <th class="name-col">Medewerker</th>
+              <th><div style="font-size:10px">Ma</div><div>22</div></th>
+              <th><div style="font-size:10px">Di</div><div>23</div></th>
+              <th><div style="font-size:10px">Wo</div><div>24</div></th>
+              <th><div style="font-size:10px">Do</div><div>25</div></th>
+              <th style="background:rgba(37,99,235,.06)"><div style="font-size:10px">Vr</div><div>26</div></th>
+              <th><div style="font-size:10px">Za</div><div>27</div></th>
+              <th><div style="font-size:10px">Zo</div><div>28</div></th>
+            </tr>
+          </thead>
+          <tbody id="sched-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TIME OFF -->
+    <div class="page" id="page-timeoff">
+      <div class="page-header-row" style="margin-bottom:20px">
+        <div class="page-header" style="margin:0"><h1>Verlofaanvragen</h1><p>Vraag verlof aan of bekijk de status van je aanvragen.</p></div>
+        <button class="btn-sm" style="height:36px;display:flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+          Verlof aanvragen
+        </button>
+      </div>
+      <div class="request-card">
+        <div class="request-row">
+          <div>
+            <div class="request-title">14 juli – 18 juli 2026</div>
+            <div class="request-sub">Zomervakantie · Ingediend op 20 jun 2026</div>
+          </div>
+          <span class="badge badge-yellow">In behandeling</span>
+        </div>
+      </div>
+      <div class="request-card">
+        <div class="request-row">
+          <div>
+            <div class="request-title">3 juli 2026</div>
+            <div class="request-sub">Doktersafspraak · Ingediend op 15 jun 2026</div>
+            <div style="font-size:11px;color:var(--green-fg);margin-top:4px;font-style:italic">"Akkoord, zorg dat iemand je dienst overneemt."</div>
+          </div>
+          <span class="badge badge-green">Goedgekeurd</span>
+        </div>
+      </div>
+      <div class="request-card">
+        <div class="request-row">
+          <div>
+            <div class="request-title">1 mei 2026</div>
+            <div class="request-sub">Persoonlijk · Ingediend op 24 apr 2026</div>
+          </div>
+          <span class="badge badge-red">Afgewezen</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SWAPS -->
+    <div class="page" id="page-swaps">
+      <div class="page-header-row" style="margin-bottom:20px">
+        <div class="page-header" style="margin:0"><h1>Ruildiensten</h1><p>Wissel een dienst met een collega.</p></div>
+        <button class="btn-sm" style="height:36px;display:flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+          Ruil aanvragen
+        </button>
+      </div>
+      <div class="request-card">
+        <div class="request-row">
+          <div>
+            <div class="request-title" style="display:flex;align-items:center;gap:6px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted-fg)" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+              Anna (22 jun) ↔ Lola (24 jun)
+            </div>
+            <div class="request-sub">Aangevraagd op 19 jun 2026</div>
+          </div>
+          <div class="action-row">
+            <span class="badge badge-yellow">Wacht op jouw reactie</span>
+            <button class="btn-sm">Accepteren</button>
+            <button class="btn-sm-outline">Weigeren</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN SCHEDULE -->
+    <div class="page" id="page-admin-schedule">
+      <div class="page-header-row" style="margin-bottom:20px">
+        <div class="page-header" style="margin:0"><h1>Rooster beheer</h1><p>ma 22 jun – zo 28 jun · Klik op een cel om te bewerken</p></div>
+        <div class="week-nav">
+          <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <button class="btn-outline">Vandaag</button>
+          <button class="btn-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg></button>
+        </div>
+      </div>
+      <div class="table-wrap card">
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th class="name-col">Medewerker</th>
+              <th><div style="font-size:10px">Ma</div><div>22</div></th>
+              <th><div style="font-size:10px">Di</div><div>23</div></th>
+              <th><div style="font-size:10px">Wo</div><div>24</div></th>
+              <th><div style="font-size:10px">Do</div><div>25</div></th>
+              <th style="background:rgba(37,99,235,.06)"><div style="font-size:10px">Vr</div><div>26</div></th>
+              <th><div style="font-size:10px">Za</div><div>27</div></th>
+              <th><div style="font-size:10px">Zo</div><div>28</div></th>
+            </tr>
+          </thead>
+          <tbody id="admin-sched-body"></tbody>
+        </table>
+      </div>
+      <p style="font-size:11px;color:var(--muted-fg);margin-top:10px">💡 Klik op een cel om de status of dienstvak aan te passen</p>
+    </div>
+
+    <!-- ADMIN REQUESTS -->
+    <div class="page" id="page-admin-requests">
+      <div class="page-header" style="margin-bottom:24px"><h1>Aanvragen beheer</h1><p>Keur verlof- en ruildienstverzoeken goed of wijs ze af.</p></div>
+
+      <div class="section-title">Verlof in behandeling <span class="badge badge-yellow">3</span></div>
+      <div class="request-card">
+        <div class="request-row">
+          <div>
+            <div class="request-title">Soula — 14 jul – 18 jul</div>
+            <div class="request-sub">Zomervakantie · 20 jun 2026</div>
+          </div>
+          <div class="action-row">
+            <button class="btn-sm" style="background:var(--green);display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Goedkeuren</button>
+            <button class="btn-sm-outline" style="display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>Afwijzen</button>
+          </div>
+        </div>
+      </div>
+      <div class="request-card">
+        <div class="request-row">
+          <div>
+            <div class="request-title">Thomas — 21 jul – 28 jul</div>
+            <div class="request-sub">Vakantie Griekenland · 18 jun 2026</div>
+          </div>
+          <div class="action-row">
+            <button class="btn-sm" style="background:var(--green);display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Goedkeuren</button>
+            <button class="btn-sm-outline" style="display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>Afwijzen</button>
+          </div>
+        </div>
+      </div>
+      <div class="request-card">
+        <div class="request-row">
+          <div>
+            <div class="request-title">Lola — 14 jul – 18 jul</div>
+            <div class="request-sub">Zomervakantie · 20 jun 2026</div>
+          </div>
+          <div class="action-row">
+            <button class="btn-sm" style="background:var(--green);display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Goedkeuren</button>
+            <button class="btn-sm-outline" style="display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>Afwijzen</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:28px">Ruildiensten wachten op goedkeuring <span class="badge badge-yellow">1</span></div>
+      <div class="request-card">
+        <div class="request-row">
+          <div>
+            <div class="request-title">Anna (22 jun) ↔ Lola (24 jun) — beide akkoord</div>
+            <div class="request-sub">Aangevraagd 19 jun 2026</div>
+          </div>
+          <div class="action-row">
+            <button class="btn-sm" style="background:var(--green);display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Goedkeuren</button>
+            <button class="btn-sm-outline">Afwijzen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN USERS -->
+    <div class="page" id="page-admin-users">
+      <div class="page-header-row" style="margin-bottom:20px">
+        <div class="page-header" style="margin:0"><h1>Medewerkers</h1><p>Beheer accounts, rollen en toegang.</p></div>
+        <button class="btn-sm" style="height:36px;display:flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+          Medewerker toevoegen
+        </button>
+      </div>
+      <div class="card">
+        <div class="card-header" style="padding-bottom:0"><span class="card-title">23 medewerkers</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="users-table">
+            <thead><tr><th>Naam</th><th>Rol</th><th>Status</th><th style="text-align:right">Acties</th></tr></thead>
+            <tbody id="users-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Bottom tab bar -->
+<div class="demo-bar" id="demo-bar" style="display:none">
+  <button class="demo-tab" onclick="switchScreen('login')">Login</button>
+  <button class="demo-tab active" onclick="switchScreen('app')">App</button>
+</div>
+
+<script type="module">
+import { animate, stagger } from 'https://cdn.jsdelivr.net/npm/animejs@4/+esm';
+
+/* ── Data ── */
+const staff = [
+  { name:'Soula',     role:'service', schedule:['v','v','x','v','v','v','v'] },
+  { name:'Anna',      role:'service', schedule:['16','13','x','13','13','13','13'] },
+  { name:'Thomas',    role:'service', schedule:['16','13','x','13','13','13','13'] },
+  { name:'Billy',     role:'kitchen', schedule:['13','16','x','16','x','16','16'] },
+  { name:'Nikitas',   role:'kitchen', schedule:['16','13','x','13','12','12','13'] },
+  { name:'Sajjad',    role:'kitchen', schedule:['x','x','x','17K','18','x','16K'] },
+  { name:'Abdu',      role:'kitchen', schedule:['x','17','x','x','18','18','18'] },
+  { name:'Dimitri',   role:'service', schedule:['x','16','x','Psonia','16','16','16'] },
+  { name:'Giorgakis', role:'service', schedule:['x','x','x','x','x','13K','x'] },
+  { name:'Iris',      role:'service', schedule:['x','x','x','x','16','x','x'] },
+  { name:'Mira B.',   role:'service', schedule:['x','x','x','x','12K','16B','x'] },
+  { name:'Giannis S.',role:'kitchen', schedule:['13','13','x','13','12','13','13'] },
+  { name:'Agis',      role:'kitchen', schedule:['13','13','x','13','12','13','13'] },
+  { name:'Lola',      role:'service', schedule:['7:30-16','7:30-16','x','7:30-16','7:30-16','7:30-16','7:30-16'] },
+  { name:'Omar',      role:'service', schedule:['x','14','x','13','13','16','16'] },
+  { name:'Anna L.',   role:'service', schedule:['16','x','x','x','x','11 B&B+K','x'] },
+  { name:'Raghda',    role:'service', schedule:['v','v','v','v','v','x','x'] },
+  { name:'Wahe',      role:'service', schedule:['x','x','x','x','x','x','v'] },
+  { name:'Spyros',    role:'service', schedule:['v','v','x','v','v','v','v'] },
+  { name:'Maria Z.',  role:'service', schedule:['Vak','Vak','Vak','Vak','Vak','Vak','Vak'] },
+  { name:'Asterios',  role:'service', schedule:['Vak','Vak','Vak','Vak','Vak','Vak','Vak'] },
+];
+
+function cellBadge(val, admin=false){
+  if(!val||val==='x') return `<span class="badge badge-red">Vrij</span>`;
+  if(val==='Vak')     return `<span class="badge badge-amber">Vakantie</span>`;
+  if(val==='v')       return `<span class="badge badge-green">Aanwezig</span>`;
+  return `<span class="badge badge-blue">${val}</span>`;
+}
+
+function buildScheduleTable(tbodyId, admin=false){
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = staff.map((e,ri)=>`
+    <tr class="anim-row" style="animation-delay:${ri*28}ms">
+      <td class="name-col">
+        <div class="emp-row">
+          <div class="avatar" style="width:30px;height:30px;font-size:11px">${e.name[0]}</div>
+          <div>
+            <div class="emp-name">${e.name}</div>
+            <span class="badge emp-role ${e.role==='kitchen'?'badge-violet':'badge-cyan'}">${e.role==='kitchen'?'Keuken':'Bediening'}</span>
+          </div>
+        </div>
+      </td>
+      ${e.schedule.map((v,d)=>`<td style="${admin?'cursor:pointer':''}" ${admin?`title="Klik om te bewerken"`:''}>${cellBadge(v,admin)}</td>`).join('')}
+    </tr>`).join('');
+}
+
+function buildUsersTable(){
+  const tbody = document.getElementById('users-body');
+  tbody.innerHTML = staff.map((e,i)=>`
+    <tr>
+      <td><div class="emp-row"><div class="avatar" style="width:28px;height:28px;font-size:11px">${e.name[0]}</div><span style="font-weight:500">${e.name}</span></div></td>
+      <td>
+        <select class="role-select">
+          <option ${e.role==='service'?'selected':''}>Bediening</option>
+          <option ${e.role==='kitchen'?'selected':''}>Keuken</option>
+          <option>Beheerder</option>
+        </select>
+      </td>
+      <td><span class="badge badge-green">Actief</span></td>
+      <td style="text-align:right">
+        <button class="btn-sm-outline" style="font-size:11px;height:28px;padding:0 10px">Deactiveren</button>
+      </td>
+    </tr>`).join('');
+}
+
+buildScheduleTable('sched-body', false);
+buildScheduleTable('admin-sched-body', true);
+buildUsersTable();
+
+/* ── Page switching ── */
+window.showPage = function(id, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+
+  const reduced = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(!reduced){
+    const rows = document.querySelectorAll('#page-'+id+' .anim-row');
+    if(rows.length){
+      animate(rows,{opacity:[0,1],translateY:[-8,0],duration:300,ease:'outQuart',delay:stagger(28)});
+    }
+  }
+};
+
+/* ── Screen switcher (login vs app) ── */
+window.switchScreen = function(screen){
+  document.getElementById('screen-login').style.display = screen==='login'?'flex':'none';
+  document.getElementById('screen-app').style.display   = screen==='app'?'flex':'none';
+  document.querySelectorAll('.demo-tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+
+  if(screen==='login'){
+    const reduced = matchMedia('(prefers-reduced-motion:reduce)').matches;
+    if(!reduced) animate('#login-card',{opacity:[0,1],translateY:[-16,0],duration:420,ease:'outQuart'});
+  }
+};
+
+/* ── Boot: show app, show tab bar ── */
+document.getElementById('screen-app').style.display = 'flex';
+document.getElementById('demo-bar').style.display = 'flex';
+
+/* ── Initial row animation ── */
+const reduced = matchMedia('(prefers-reduced-motion:reduce)').matches;
+if(!reduced){
+  animate('#page-dashboard .card',{opacity:[0,1],translateY:[-10,0],duration:360,ease:'outQuart',delay:stagger(60)});
+}
+</script>
+</body>
+</html>
