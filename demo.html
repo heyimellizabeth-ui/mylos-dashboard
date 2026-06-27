@@ -209,24 +209,62 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
   /* Let body scroll on mobile — nested overflow-y:auto causes scroll jank */
   .main{overflow-y:visible;padding-top:56px;padding-bottom:env(safe-area-inset-bottom)}
 
-  /* Pages */
-  .page{padding:16px}
-  .page-header h1{font-size:18px}
+  /* Pages — tighter vertical rhythm */
+  .page{padding:12px}
+  .page-header h1{font-size:17px}
+  .page-header{margin-bottom:12px}
+  .page-header-row{margin-bottom:12px!important}
+
+  /* Cards */
+  .card-header{padding:10px 14px 0}
+  .card-body{padding:10px 14px}
+  .card-title{font-size:13px}
+
+  /* Dashboard */
+  .dash-greeting{margin-bottom:10px}
+  .dash-greeting h1{font-size:17px}
+  .card{margin-bottom:10px!important}
+  .stat-grid{gap:8px;margin-bottom:10px}
+  .stat-card{padding:12px}
+  .stat-icon{width:28px;height:28px;border-radius:7px;margin-bottom:6px}
+  .stat-num{font-size:20px}
+  .week-strip{gap:4px;margin-top:6px}
+  .week-day{padding:6px 2px}
+  .week-day-num{font-size:13px}
+  .announcement{margin-bottom:8px;padding-left:10px}
+  .ann-title{font-size:12px}
+  .ann-body{font-size:11px}
+
+  /* Schedule table — compact rows */
+  .schedule-table th{padding:6px 4px;font-size:10px}
+  .schedule-table td{padding:5px 4px}
+  .schedule-table th.name-col{min-width:90px;padding-left:10px}
+  .schedule-table td.name-col{padding-left:10px}
+  .emp-name{font-size:11px}
+  .badge{font-size:10px;padding:1px 6px}
+
+  /* Request cards */
+  .request-card{padding:12px 14px;margin-bottom:8px}
+  .request-title{font-size:12px}
+  .request-sub{font-size:11px}
+  .request-row{flex-direction:column;gap:8px}
+  .action-row{flex-wrap:wrap;gap:6px}
+  .section-title{font-size:14px;margin-bottom:8px}
+
+  /* Admin users table */
+  .data-table th,.data-table td{padding:8px 10px;font-size:12px}
 
   /* Login */
   #screen-login{padding:16px;align-items:flex-start;padding-top:80px}
-  .login-card{width:100%;border-radius:12px;padding:24px 20px}
+  .login-card{width:100%;border-radius:12px;padding:20px 16px}
+  .form-group{margin-bottom:12px}
 
   /* Buttons — 44px touch targets */
-  .btn-outline,.btn-icon,.btn-sm,.btn-sm-outline{min-height:44px}
+  .btn-outline,.btn-sm,.btn-sm-outline{min-height:44px}
   .btn-icon{width:44px;height:44px}
-  .btn-outline{height:44px;padding:0 16px}
+  .btn-outline{height:44px;padding:0 14px}
 
-  /* Request cards: stack vertically */
-  .request-row{flex-direction:column;gap:10px}
-  .action-row{flex-wrap:wrap}
-
-  /* Demo bar: don't overlap content */
+  /* Demo bar */
   .demo-bar{bottom:max(12px,env(safe-area-inset-bottom));padding:5px 6px}
   .demo-tab{padding:5px 10px;font-size:11px}
 }
