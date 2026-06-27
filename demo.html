@@ -26,24 +26,37 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
 
 /* ── Layout ── */
 .shell{display:flex;min-height:100vh}
-.sidebar{width:220px;min-height:100vh;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar{width:220px;min-height:100vh;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:width .2s ease}
+.sidebar.collapsed{width:60px}
 .main{flex:1;overflow-y:auto}
 .page{max-width:960px;margin:0 auto;padding:32px 24px;display:none}
 .page.active{display:block}
 
 /* ── Sidebar ── */
-.sb-brand{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid var(--border)}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid var(--border);overflow:hidden;position:relative}
 .sb-logo{width:32px;height:32px;border-radius:8px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;flex-shrink:0}
+.sb-brand-text{transition:opacity .15s ease,width .2s ease;overflow:hidden;white-space:nowrap}
 .sb-brand-text p{font-weight:600;font-size:13px;line-height:1.2}
 .sb-brand-text small{font-size:11px;color:var(--muted-fg)}
-.sb-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
-.sb-section{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-fg);padding:12px 10px 4px}
-.nav-btn{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--muted-fg);background:none;width:100%;text-align:left;transition:all .12s}
+.sidebar.collapsed .sb-brand-text{opacity:0;width:0}
+.sb-toggle{margin-left:auto;width:24px;height:24px;border-radius:6px;background:none;display:flex;align-items:center;justify-content:center;color:var(--muted-fg);flex-shrink:0;transition:background .12s}
+.sb-toggle:hover{background:var(--muted);color:var(--fg)}
+.sb-toggle svg{width:14px;height:14px;transition:transform .2s ease}
+.sidebar.collapsed .sb-toggle svg{transform:rotate(180deg)}
+.sb-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;overflow:hidden}
+.sb-section{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-fg);padding:12px 10px 4px;white-space:nowrap;transition:opacity .15s ease}
+.sidebar.collapsed .sb-section{opacity:0}
+.nav-btn{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--muted-fg);background:none;width:100%;text-align:left;transition:all .12s;white-space:nowrap;overflow:hidden}
 .nav-btn:hover{background:var(--muted);color:var(--fg)}
 .nav-btn.active{background:var(--primary);color:#fff}
 .nav-btn svg{width:15px;height:15px;flex-shrink:0}
-.sb-user{padding:12px 10px;border-top:1px solid var(--border)}
+.nav-btn span{transition:opacity .15s ease,max-width .2s ease;max-width:160px;overflow:hidden}
+.sidebar.collapsed .nav-btn span{opacity:0;max-width:0}
+.sidebar.collapsed .nav-btn{justify-content:center;padding:8px}
+.sb-user{padding:12px 10px;border-top:1px solid var(--border);overflow:hidden}
 .user-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px}
+.user-info{transition:opacity .15s ease,width .2s ease;overflow:hidden;white-space:nowrap;min-width:0}
+.sidebar.collapsed .user-info{opacity:0;width:0}
 .avatar{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
 
 /* ── Login screen ── */
@@ -185,46 +198,49 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
 <div class="shell" id="screen-app" style="display:none">
 
   <!-- Sidebar -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sb-brand">
       <div class="sb-logo">M</div>
       <div class="sb-brand-text"><p>Mylos Rooster</p><small>Alkmaar</small></div>
+      <button class="sb-toggle" onclick="toggleSidebar()" title="Menu inklappen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
     </div>
     <nav class="sb-nav">
       <button class="nav-btn active" onclick="showPage('dashboard',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        Dashboard
+        <span>Dashboard</span>
       </button>
       <button class="nav-btn" onclick="showPage('schedule',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        Rooster
+        <span>Rooster</span>
       </button>
       <button class="nav-btn" onclick="showPage('timeoff',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        Verlofaanvragen
+        <span>Verlofaanvragen</span>
       </button>
       <button class="nav-btn" onclick="showPage('swaps',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
-        Ruildiensten
+        <span>Ruildiensten</span>
       </button>
       <div class="sb-section">Beheer</div>
       <button class="nav-btn" onclick="showPage('admin-schedule',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        Rooster beheer
+        <span>Rooster beheer</span>
       </button>
       <button class="nav-btn" onclick="showPage('admin-requests',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        Aanvragen
+        <span>Aanvragen</span>
       </button>
       <button class="nav-btn" onclick="showPage('admin-users',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85"/></svg>
-        Medewerkers
+        <span>Medewerkers</span>
       </button>
     </nav>
     <div class="sb-user">
       <div class="user-row">
         <div class="avatar">L</div>
-        <div style="min-width:0">
+        <div class="user-info">
           <p style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Lola</p>
           <p style="font-size:11px;color:var(--muted-fg)">Bediening</p>
         </div>
@@ -605,6 +621,11 @@ function buildUsersTable(){
 buildScheduleTable('sched-body', false);
 buildScheduleTable('admin-sched-body', true);
 buildUsersTable();
+
+/* ── Sidebar collapse ── */
+window.toggleSidebar = function(){
+  document.getElementById('sidebar').classList.toggle('collapsed');
+};
 
 /* ── Page switching ── */
 window.showPage = function(id, btn){
