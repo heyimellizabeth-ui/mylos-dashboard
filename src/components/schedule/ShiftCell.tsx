@@ -27,7 +27,7 @@ export function ShiftCell({ schedule, isAdmin, onClick }: ShiftCellProps) {
       const label = shift_end
         ? `${shift_start.slice(0, 5)}–${shift_end.slice(0, 5)}`
         : shift_start.slice(0, 5);
-      badge = <Badge variant="shift">{label}</Badge>;
+      badge = <Badge variant="shift" className="font-mono tracking-tight">{label}</Badge>;
     } else {
       badge = <Badge variant="available">Aanwezig</Badge>;
     }

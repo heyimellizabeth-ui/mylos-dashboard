@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Calendar, ClipboardList, ArrowLeftRight, Users, Settings, LogOut, Megaphone } from "lucide-react";
+import { LayoutDashboard, Calendar, ClipboardList, ArrowLeftRight, Users, LogOut, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
@@ -24,9 +24,11 @@ const adminLinks = [
 interface SidebarProps {
   role: Role;
   name: string;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-export function Sidebar({ role, name }: SidebarProps) {
+export function Sidebar({ role, name, mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -36,10 +38,22 @@ export function Sidebar({ role, name }: SidebarProps) {
     router.push("/login");
   };
 
+  const isActive = (href: string) =>
+    href === "/dashboard" ? pathname === href : pathname.startsWith(href);
+
   return (
-    <aside className="flex flex-col w-60 min-h-screen bg-[--card] border-r border-[--border] shrink-0">
+    <aside
+      className={cn(
+        "flex flex-col w-60 bg-[--card] border-r border-[--border] shrink-0",
+        // Desktop: static in flow
+        "lg:relative lg:min-h-screen lg:translate-x-0",
+        // Mobile: fixed drawer
+        "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out lg:transition-none",
+        mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}
+    >
       {/* Brand */}
-      <div className="px-5 py-5 border-b border-[--border]">
+      <div className="px-5 py-5 border-b border-[--border] shrink-0">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-[--primary] flex items-center justify-center">
             <span className="text-white font-bold text-sm">M</span>
@@ -52,16 +66,15 @@ export function Sidebar({ role, name }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {staffLinks.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
             href={href}
+            onClick={onMobileClose}
             className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-              pathname.startsWith(href) && href !== "/dashboard"
-                ? "bg-[--primary] text-white"
-                : pathname === href && href === "/dashboard"
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+              isActive(href)
                 ? "bg-[--primary] text-white"
                 : "text-[--muted-foreground] hover:bg-[--muted] hover:text-[--foreground]"
             )}
@@ -73,16 +86,17 @@ export function Sidebar({ role, name }: SidebarProps) {
 
         {role === "admin" && (
           <>
-            <div className="pt-4 pb-1 px-3">
+            <div className="pt-5 pb-1.5 px-3">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-[--muted-foreground]">Beheer</p>
             </div>
             {adminLinks.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
+                onClick={onMobileClose}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
-                  pathname.startsWith(href)
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                  isActive(href)
                     ? "bg-[--primary] text-white"
                     : "text-[--muted-foreground] hover:bg-[--muted] hover:text-[--foreground]"
                 )}
@@ -96,19 +110,21 @@ export function Sidebar({ role, name }: SidebarProps) {
       </nav>
 
       {/* User footer */}
-      <div className="px-3 py-4 border-t border-[--border] space-y-1">
-        <div className="flex items-center gap-3 px-3 py-2 rounded-lg">
-          <div className="h-7 w-7 rounded-full bg-[--primary] flex items-center justify-center text-white text-xs font-semibold shrink-0">
+      <div className="px-3 py-4 border-t border-[--border] space-y-0.5 shrink-0">
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
+          <div className="h-8 w-8 rounded-full bg-[--primary] flex items-center justify-center text-white text-xs font-bold shrink-0">
             {name.slice(0, 1).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium truncate">{name}</p>
-            <p className="text-[10px] text-[--muted-foreground] capitalize">{role === "kitchen" ? "Keuken" : role === "service" ? "Bediening" : "Admin"}</p>
+            <p className="text-sm font-medium truncate leading-tight">{name}</p>
+            <p className="text-[10px] text-[--muted-foreground]">
+              {role === "kitchen" ? "Keuken" : role === "service" ? "Bediening" : "Admin"}
+            </p>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm text-[--muted-foreground] hover:bg-[--muted] hover:text-[--foreground] transition-colors"
+          className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[--muted-foreground] hover:bg-[--muted] hover:text-[--foreground] transition-colors"
         >
           <LogOut className="h-4 w-4 shrink-0" />
           Uitloggen

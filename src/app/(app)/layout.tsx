@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { AppShell } from "@/components/layout/AppShell";
 
 export const dynamic = "force-dynamic";
 
@@ -19,13 +19,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!profile) redirect("/login");
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar role={profile.role} name={profile.name} />
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          {children}
-        </div>
-      </main>
-    </div>
+    <AppShell role={profile.role} name={profile.name}>
+      {children}
+    </AppShell>
   );
 }
