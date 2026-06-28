@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,7 @@ export default function SwapsPage() {
   const supabase = createClient();
   const [userId, setUserId] = useState<string>("");
   const [swaps, setSwaps] = useState<(ShiftSwapRequest & { requester: Profile; target_employee: Profile })[]>([]);
+  const listRef = useRef<HTMLDivElement>(null);
   const [colleagues, setColleagues] = useState<Profile[]>([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ target_employee_id: "", requester_date: "", target_date: "" });
@@ -55,6 +56,16 @@ export default function SwapsPage() {
   }
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (!swaps.length || !listRef.current) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+    const cards = Array.from(listRef.current.children) as HTMLElement[];
+    import("animejs").then(({ animate, stagger }) => {
+      animate(cards, { opacity: [0, 1], translateY: [10, 0], ease: "out(3)", duration: 320, delay: stagger(40) });
+    });
+  }, [swaps]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -130,7 +141,7 @@ export default function SwapsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3" ref={listRef}>
           {swaps.map((s) => {
             const isTarget = s.target_employee_id === userId;
             const canRespond = isTarget && s.status === "pending";

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,8 @@ export default function AdminRequestsPage() {
   const [reviewId, setReviewId] = useState<string | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [userId, setUserId] = useState<string>("");
+  const pendingTimeOffRef = useRef<HTMLDivElement>(null);
+  const pendingSwapsRef = useRef<HTMLDivElement>(null);
 
   async function load() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -34,7 +36,39 @@ export default function AdminRequestsPage() {
 
   useEffect(() => { load(); }, []);
 
+  const pendingTimeOff = timeOff.filter((r) => r.status === "pending");
+  const pastTimeOff = timeOff.filter((r) => r.status !== "pending");
+  const pendingSwaps = swaps.filter((s) => s.status === "accepted");
+
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+    import("animejs").then(({ animate, stagger }) => {
+      if (pendingTimeOffRef.current?.children.length) {
+        const els = Array.from(pendingTimeOffRef.current.children) as HTMLElement[];
+        animate(els, { opacity: [0, 1], translateY: [10, 0], ease: "out(3)", duration: 320, delay: stagger(40) });
+      }
+      if (pendingSwapsRef.current?.children.length) {
+        const els = Array.from(pendingSwapsRef.current.children) as HTMLElement[];
+        animate(els, { opacity: [0, 1], translateY: [10, 0], ease: "out(3)", duration: 320, delay: stagger(40) });
+      }
+    });
+  }, [pendingTimeOff.length, pendingSwaps.length]);
+
   async function reviewTimeOff(id: string, approved: boolean) {
+    if (approved) {
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!reduced) {
+        const dialog = document.querySelector('[role="dialog"]');
+        const btn = dialog?.querySelector('button:last-child') as HTMLElement | null;
+        if (btn) {
+          const { animate } = await import("animejs");
+          await new Promise<void>((resolve) => {
+            animate(btn, { scale: [1, 1.15, 1], duration: 400, ease: "out(3)", onComplete: () => resolve() });
+          });
+        }
+      }
+    }
     await supabase.from("time_off_requests").update({
       status: approved ? "approved" : "denied",
       admin_notes: adminNotes || null,
@@ -53,10 +87,6 @@ export default function AdminRequestsPage() {
     load();
   }
 
-  const pendingTimeOff = timeOff.filter((r) => r.status === "pending");
-  const pastTimeOff = timeOff.filter((r) => r.status !== "pending");
-  const pendingSwaps = swaps.filter((s) => s.status === "accepted");
-
   return (
     <div className="space-y-8">
       <div>
@@ -72,7 +102,7 @@ export default function AdminRequestsPage() {
         {pendingTimeOff.length === 0 ? (
           <p className="text-sm text-[--muted-foreground]">Geen openstaande verlofaanvragen.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2" ref={pendingTimeOffRef}>
             {pendingTimeOff.map((r) => (
               <Card key={r.id}>
                 <CardContent className="pt-4 pb-4">
@@ -109,7 +139,7 @@ export default function AdminRequestsPage() {
         {pendingSwaps.length === 0 ? (
           <p className="text-sm text-[--muted-foreground]">Geen ruildiensten in behandeling.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2" ref={pendingSwapsRef}>
             {pendingSwaps.map((s) => (
               <Card key={s.id}>
                 <CardContent className="pt-4 pb-4">

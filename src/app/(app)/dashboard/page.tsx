@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, ClipboardList, ArrowLeftRight, Megaphone } from "lucide-react";
 import { getWeekDates, toISODate, formatDate } from "@/lib/utils";
+import { AnimateIn } from "@/components/AnimateIn";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -29,7 +30,7 @@ export default async function DashboardPage() {
   const todayShift = upcomingShifts.find((s) => s.date === todayStr);
 
   return (
-    <div className="space-y-6">
+    <AnimateIn className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Goedemorgen, {profile?.name?.split(" ")[0]} 👋</h1>
         <p className="text-[--muted-foreground] mt-1">Hier is je overzicht voor vandaag.</p>
@@ -162,6 +163,6 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </AnimateIn>
   );
 }

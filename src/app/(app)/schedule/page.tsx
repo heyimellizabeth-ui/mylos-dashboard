@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { WeekGrid } from "@/components/schedule/WeekGrid";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ export default function SchedulePage() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const dates = getWeekDates(weekOffset);
   const start = toISODate(dates[0]);
@@ -31,6 +32,15 @@ export default function SchedulePage() {
     }
     load();
   }, [weekOffset]);
+
+  useEffect(() => {
+    if (loading || !gridRef.current) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+    import("animejs").then(({ animate }) => {
+      animate(gridRef.current!, { opacity: [0, 1], translateY: [8, 0], ease: "out(3)", duration: 360 });
+    });
+  }, [loading]);
 
   const weekLabel = `${formatDate(dates[0])} – ${formatDate(dates[6])}`;
 
@@ -57,7 +67,9 @@ export default function SchedulePage() {
           <p className="text-[--muted-foreground] text-sm">Rooster laden…</p>
         </div>
       ) : (
-        <WeekGrid dates={dates} employees={employees} schedules={schedules} isAdmin={false} />
+        <div ref={gridRef}>
+          <WeekGrid dates={dates} employees={employees} schedules={schedules} isAdmin={false} />
+        </div>
       )}
     </div>
   );

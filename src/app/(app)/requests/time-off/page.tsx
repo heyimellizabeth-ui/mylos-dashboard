@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ export default function TimeOffPage() {
   const supabase = createClient();
   const [requests, setRequests] = useState<TimeOffRequest[]>([]);
   const [open, setOpen] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
   const [form, setForm] = useState({ start_date: "", end_date: "", reason: "" });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -33,6 +34,16 @@ export default function TimeOffPage() {
   }
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (!requests.length || !listRef.current) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+    const cards = Array.from(listRef.current.children) as HTMLElement[];
+    import("animejs").then(({ animate, stagger }) => {
+      animate(cards, { opacity: [0, 1], translateY: [10, 0], ease: "out(3)", duration: 320, delay: stagger(40) });
+    });
+  }, [requests]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -98,7 +109,7 @@ export default function TimeOffPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3" ref={listRef}>
           {requests.map((r) => (
             <Card key={r.id}>
               <CardContent className="pt-4 pb-4">
