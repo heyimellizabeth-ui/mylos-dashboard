@@ -18,18 +18,23 @@
   --violet-bg: #F5F3FF; --violet-fg: #5B21B6;
   --cyan-bg: #ECFEFF; --cyan-fg: #0E7490;
   --r: 10px;
+  /* Semantic shadow tokens */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.10), 0 1px 4px rgba(0,0,0,.06);
+  /* Motion tokens */
+  --motion-enter: 320ms; --motion-exit: 160ms; --motion-stagger: 28ms;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{overflow-x:hidden;max-width:100vw}
 body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--fg);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;text-size-adjust:100%;overflow-x:hidden;max-width:100vw;width:100%}
-button{font-family:inherit;cursor:pointer;border:none;outline:none}
+button,select{font-family:inherit;cursor:pointer;border:none;outline:none;touch-action:manipulation}
 button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:4px}
 
 /* ── Layout ── */
 .shell{display:flex;min-height:100vh;max-width:100vw;overflow-x:hidden}
 .sidebar{width:220px;min-height:100vh;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:width .2s ease}
 .sidebar.collapsed{width:60px}
-.main{flex:1;overflow-y:auto;min-width:0}
+.main{flex:1;overflow-y:auto;min-width:0;overscroll-behavior:contain}
 .page{max-width:960px;margin:0 auto;padding:32px 24px;display:none}
 .page.active{display:block}
 
@@ -139,7 +144,7 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
 .emp-row{display:flex;align-items:center;gap:8px}
 .emp-name{font-weight:500;font-size:13px}
 .emp-role{display:block;margin-top:2px}
-.table-wrap{overflow-x:auto;border-radius:var(--r)}
+.table-wrap{overflow-x:auto;border-radius:var(--r);overscroll-behavior:contain}
 
 /* ── Requests ── */
 .request-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin-bottom:10px}
@@ -169,6 +174,15 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
 /* ── Animations ── */
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .anim-row{opacity:0;animation:fadeUp .35s ease forwards}
+@keyframes todayPulse{0%,100%{outline:1px solid var(--primary)}50%{outline:2px solid rgba(37,99,235,.35)}}
+.week-day.today{animation:todayPulse 2.6s ease-in-out infinite}
+
+/* ── Desktop card hover lift ── */
+@media(min-width:641px){
+  .card,.stat-card,.request-card{transition:box-shadow .18s ease,transform .18s ease}
+  .card:hover,.stat-card:hover{box-shadow:var(--shadow-md)}
+  .stat-card:hover{transform:translateY(-2px)}
+}
 
 /* ── Mobile header (hidden on desktop) ── */
 .mobile-header{display:none;will-change:transform}
@@ -199,7 +213,7 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
 /* ── Mobile breakpoint ── */
 @media(max-width:640px){
   /* Top header bar */
-  .mobile-header{display:flex;align-items:center;gap:12px;position:fixed;top:0;left:0;right:0;height:56px;background:var(--card);border-bottom:1px solid var(--border);padding:0 16px;z-index:50}
+  .mobile-header{display:flex;align-items:center;gap:12px;position:fixed;top:0;left:0;right:0;height:56px;background:color-mix(in srgb,var(--card) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 16px;z-index:50}
   .mob-hamburger{width:40px;height:40px;border-radius:8px;background:none;display:flex;align-items:center;justify-content:center;color:var(--fg);flex-shrink:0}
   .mob-hamburger:hover{background:var(--muted)}
   .mob-hamburger svg{width:20px;height:20px}
@@ -271,11 +285,12 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
   .login-card{width:100%;border-radius:12px;padding:20px 16px}
   .form-group{margin-bottom:12px}
 
-  /* Buttons: nav/week buttons 44px; inline action buttons fit in cards */
+  /* Buttons: all interactive targets ≥ 44px (Apple HIG) */
   .btn-outline,.btn-icon{min-height:44px}
   .btn-icon{width:44px;height:44px}
   .btn-outline{height:44px;padding:0 14px}
-  .btn-sm,.btn-sm-outline{min-height:40px;height:40px}
+  .btn-sm,.btn-sm-outline{min-height:44px;height:44px}
+  .pager-btn{min-height:44px;height:44px}
 
   /* Demo bar */
   .demo-bar{bottom:max(12px,env(safe-area-inset-bottom));padding:5px 6px}
@@ -508,7 +523,7 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
     <div class="page" id="page-timeoff">
       <div class="page-header-row" style="margin-bottom:20px">
         <div class="page-header" style="margin:0"><h1>Verlofaanvragen</h1><p>Vraag verlof aan of bekijk de status van je aanvragen.</p></div>
-        <button class="btn-sm" style="height:36px;display:flex;align-items:center;gap:6px">
+        <button class="btn-sm" style="display:flex;align-items:center;gap:6px">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
           Verlof aanvragen
         </button>
@@ -547,7 +562,7 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
     <div class="page" id="page-swaps">
       <div class="page-header-row" style="margin-bottom:20px">
         <div class="page-header" style="margin:0"><h1>Ruildiensten</h1><p>Wissel een dienst met een collega.</p></div>
-        <button class="btn-sm" style="height:36px;display:flex;align-items:center;gap:6px">
+        <button class="btn-sm" style="display:flex;align-items:center;gap:6px">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
           Ruil aanvragen
         </button>
@@ -608,7 +623,7 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18l6-6-6-6"/></svg>
         </button>
       </div>
-      <p style="font-size:11px;color:var(--muted-fg);margin-top:10px">💡 Klik op een cel om de status of dienstvak aan te passen</p>
+      <p style="font-size:11px;color:var(--muted-fg);margin-top:10px">Klik op een cel om de status of dienstvak aan te passen</p>
     </div>
 
     <!-- ADMIN REQUESTS -->
@@ -672,7 +687,7 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-
     <div class="page" id="page-admin-users">
       <div class="page-header-row" style="margin-bottom:20px">
         <div class="page-header" style="margin:0"><h1>Medewerkers</h1><p>Beheer accounts, rollen en toegang.</p></div>
-        <button class="btn-sm" style="height:36px;display:flex;align-items:center;gap:6px">
+        <button class="btn-sm" style="display:flex;align-items:center;gap:6px">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
           Medewerker toevoegen
         </button>
@@ -909,6 +924,111 @@ const reduced = matchMedia('(prefers-reduced-motion:reduce)').matches;
 if(!reduced){
   staggerAnimate('#page-dashboard .card', 60);
 }
+
+/* ── Anime.js v4 availability flag ── */
+window._animeReady = false;
+</script>
+
+<!-- Anime.js v4 enhancement layer (showcase patterns: grid stagger, spring, out(3) ease)  -->
+<!-- Falls back silently to staggerAnimate if CDN unavailable (file:// or offline)          -->
+<script type="module">
+import('https://cdn.jsdelivr.net/npm/animejs@4/+esm').then(A => {
+  const { animate, stagger, spring, createTimeline, utils } = A;
+  window._animeReady = true;
+
+  const pref = matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  /* Replace staggerAnimate with Anime.js when available */
+  window.staggerAnimate = function(selector, delayStep) {
+    if (pref) return;
+    const els = typeof selector === 'string'
+      ? document.querySelectorAll(selector)
+      : Array.from(selector);
+    const visible = Array.from(els).filter(el => el.style.display !== 'none');
+    if (!visible.length) return;
+    animate(visible, {
+      opacity: [0, 1],
+      translateY: [10, 0],
+      ease: 'out(3)',
+      duration: 360,
+    }, stagger(delayStep || 28));
+  };
+
+  /* Page transitions: slide out old, slide in new (showcase direction logic) */
+  const _origShowPage = window.showPage;
+  window.showPage = function(id, btn) {
+    if (pref) { _origShowPage(id, btn); return; }
+    const leaving = document.querySelector('.page.active');
+    const entering = document.getElementById('page-' + id);
+    if (!leaving || !entering || leaving === entering) { _origShowPage(id, btn); return; }
+
+    animate(leaving, {
+      opacity: [1, 0], translateX: [0, -14],
+      duration: 160, ease: 'in(2)',
+      onComplete() {
+        _origShowPage(id, btn);
+        animate(entering, {
+          opacity: [0, 1], translateX: [14, 0],
+          duration: 280, ease: 'out(3)',
+        });
+        /* Stagger rows/cards in the new page (showcase 01 pattern) */
+        const rows = entering.querySelectorAll('.anim-row');
+        if (rows.length) {
+          animate(rows, {
+            opacity: [0, 1], translateY: [8, 0],
+            ease: 'out(3)', duration: 360,
+          }, stagger(22));
+        }
+      },
+    });
+  };
+
+  /* Pagination stagger (showcase 01 · grid stagger) */
+  const _origSchedGoTo = window.schedGoTo;
+  window.schedGoTo = function(tbodyId, delta) {
+    _origSchedGoTo(tbodyId, delta);
+    if (pref) return;
+    const rows = document.querySelectorAll('#' + tbodyId + ' .sched-row');
+    const visible = Array.from(rows).filter(r => r.style.display !== 'none');
+    if (visible.length) {
+      animate(visible, {
+        opacity: [0, 1], translateY: [6, 0],
+        ease: 'out(4)', duration: 280,
+      }, stagger(18));
+    }
+  };
+
+  /* Sidebar backdrop fade (CSS handles the slide; Anime.js fades the backdrop) */
+  const _origClose = window.closeSidebar;
+  window.closeSidebar = function() {
+    const bd = document.getElementById('sb-backdrop');
+    if (bd && bd.classList.contains('visible') && !pref) {
+      animate(bd, { opacity: [1, 0], duration: 200, ease: 'out(2)',
+        onComplete() { _origClose(); bd.style.opacity = ''; } });
+    } else { _origClose(); }
+  };
+
+  /* Dashboard stat count-up on first mount */
+  if (!pref) {
+    document.querySelectorAll('.stat-num').forEach(el => {
+      const target = parseInt(el.textContent, 10) || 0;
+      if (target === 0) return;
+      el.textContent = '0';
+      animate({ v: 0 }, {
+        v: target, duration: 700, ease: 'out(3)',
+        onUpdate(anim) { el.textContent = Math.round(anim.targets[0].v); },
+      });
+    });
+
+    /* Dashboard cards entrance (blend approach: each has own timing) */
+    animate('#page-dashboard .card, #page-dashboard .stat-card', {
+      opacity: [0, 1], translateY: [14, 0],
+      ease: 'out(3)',
+      duration: () => utils.random(320, 440),
+    }, stagger(50));
+  }
+
+}).catch(() => { /* CDN unavailable — staggerAnimate CSS fallback active */ });
 </script>
 </body>
 </html>
